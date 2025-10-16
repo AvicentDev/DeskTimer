@@ -36,8 +36,8 @@ services:
         environment:
             MYSQL_DATABASE: desktimer
             MYSQL_USER: root
-            MYSQL_PASSWORD:
-            MYSQL_ROOT_PASSWORD:
+            MYSQL_PASSWORD: root
+            MYSQL_ROOT_PASSWORD: root
         ports:
             - "3307:3306"
         volumes:
