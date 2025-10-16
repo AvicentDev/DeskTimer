@@ -1,28 +1,35 @@
-# Imagen base de PHP con Composer
-FROM php:8.2-fpm
+# Imagen base
+FROM php:8.3-fpm
 
-# Instala dependencias del sistema necesarias para Laravel
+# Directorio de trabajo
+WORKDIR /var/www/desktimer
+
+# Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    zip unzip git curl libpng-dev libjpeg-dev libfreetype6-dev libonig-dev libxml2-dev libzip-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+    git \
+    unzip \
+    curl \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath
 
 # Instalar Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Definir el directorio de trabajo
-WORKDIR /var/www
+# Copiar el proyecto
+COPY . /var/www/desktimer
 
-# Copiar archivos del proyecto
-COPY . .
+# Instalar dependencias Laravel
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Instalar dependencias de PHP
-RUN composer install --no-dev --optimize-autoloader
+# Permisos
+RUN chown -R www-data:www-data /var/www/desktimer
+RUN chmod -R 775 /var/www/desktimer/storage /var/www/desktimer/bootstrap/cache
 
-# Generar la clave de aplicación automáticamente
-RUN php artisan key:generate
+# Exponer puerto FPM
+EXPOSE 9000
 
-# Exponer el puerto que Render usa por defecto
-EXPOSE 10000
-
-# Comando de inicio (Render inyecta el puerto en $PORT)
-CMD php artisan serve --host=0.0.0.0 --port=$PORT
+# Comando por defecto
+CMD ["php-fpm"]
