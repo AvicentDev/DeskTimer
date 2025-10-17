@@ -9,10 +9,14 @@ return [
     // Aquí pones tu frontend (Vite, React, etc.) que corre en http://localhost:5173
     'allowed_origins' => [
         'http://localhost:5173',
-        'https://frontend-desk-timer.vercel.app'
+        'https://frontend-desk-timer.vercel.app',
+        'https://frontend-desk-timer-lwexgoudv-avicentdevs-projects.vercel.app'
     ],
 
-    'allowed_origins_patterns' => [],
+    // Permite todos los subdominios de Vercel
+    'allowed_origins_patterns' => [
+        '/^https:\/\/.*\.vercel\.app$/'
+    ],
 
     'allowed_headers' => ['*'],
 
