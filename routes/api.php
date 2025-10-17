@@ -25,17 +25,8 @@ Route::get('/health', function () {
     ]);
 });
 
-Route::get('/cron-task', function () {
-    // Aquí pones la tarea que quieres ejecutar
-    Log::info('Cron externo ejecutado correctamente');
-
-    // Ejemplo de lógica: llamar un comando artisan
-    Artisan::call('my:task');
-
-    return response()->json([
-        'status' => 'ok',
-        'message' => 'Tarea ejecutada'
-    ]);
+Route::get('/api/cron-task', function () {
+    return response()->json(['status' => 'ok', 'message' => 'Cron reached']);
 });
 
 Route::get('/user', function (Request $request) {
