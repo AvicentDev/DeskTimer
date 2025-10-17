@@ -3,8 +3,10 @@
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\SolicitudController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 // Health check endpoint para Render
 Route::get('/health', function () {
@@ -14,12 +16,25 @@ Route::get('/health', function () {
     } catch (\Exception $e) {
         $dbStatus = 'disconnected';
     }
-    
+
     return response()->json([
         'status' => 'ok',
         'timestamp' => now(),
         'database' => $dbStatus,
         'app' => config('app.name')
+    ]);
+});
+
+Route::get('/cron-task', function () {
+    // Aquí pones la tarea que quieres ejecutar
+    Log::info('Cron externo ejecutado correctamente');
+
+    // Ejemplo de lógica: llamar un comando artisan
+    Artisan::call('my:task');
+
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'Tarea ejecutada'
     ]);
 });
 
@@ -46,14 +61,14 @@ Route::middleware(['auth:sanctum', 'role:administrador'])->group(function () {
 });
 
 
-require __DIR__.'/api/user.php';
-require __DIR__.'/api/miembro.php';
-require __DIR__.'/api/cliente.php'; 
-require __DIR__.'/api/proyecto.php';
-require __DIR__.'/api/proyecto_archivado.php';
-require __DIR__.'/api/tarea.php';
-require __DIR__.'/api/tarea_archivada.php';
-require __DIR__.'/api/entrada_tiempo.php';
-require __DIR__.'/api/etiqueta.php';
+require __DIR__ . '/api/user.php';
+require __DIR__ . '/api/miembro.php';
+require __DIR__ . '/api/cliente.php';
+require __DIR__ . '/api/proyecto.php';
+require __DIR__ . '/api/proyecto_archivado.php';
+require __DIR__ . '/api/tarea.php';
+require __DIR__ . '/api/tarea_archivada.php';
+require __DIR__ . '/api/entrada_tiempo.php';
+require __DIR__ . '/api/etiqueta.php';
 
-require __DIR__.'/api/auth.php';    
+require __DIR__ . '/api/auth.php';
