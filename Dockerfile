@@ -37,7 +37,7 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Exponer puerto dinámico que Render asigna
-EXPOSE $PORT
+EXPOSE 80
 
 # Comando de inicio optimizado
 # 1. Forzar a Apache a escuchar en $PORT
