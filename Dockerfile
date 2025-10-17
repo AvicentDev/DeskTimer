@@ -39,8 +39,35 @@ RUN chown -R www-data:www-data /var/www/html \
 # Exponer puerto dinámico que Render asigna
 EXPOSE 80
 
-# Comando de inicio optimizado
-# 1. Forzar a Apache a escuchar en $PORT
-# 2. Arrancar Apache
-# 3. Mantener el contenedor en foreground
-CMD ["sh", "-c", "sed -i 's/Listen 80/Listen ${PORT}/' /etc/apache2/ports.conf && apache2-foreground"]
+# Crear script de inicio
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+echo "=== Iniciando DeskTimer Backend ==="\n\
+\n\
+# Configurar Apache para usar el puerto de Render\n\
+echo "Configurando Apache para puerto $PORT"\n\
+sed -i "s/Listen 80/Listen ${PORT:-80}/g" /etc/apache2/ports.conf\n\
+sed -i "s/:80/:${PORT:-80}/g" /etc/apache2/sites-available/000-default.conf\n\
+\n\
+# Verificar conexión a base de datos\n\
+echo "Verificando conexión a base de datos..."\n\
+php artisan db:show || echo "Advertencia: No se pudo verificar la conexión a la BD"\n\
+\n\
+# Optimizaciones de Laravel\n\
+echo "Optimizando Laravel..."\n\
+php artisan config:cache\n\
+php artisan route:cache\n\
+php artisan view:cache\n\
+\n\
+echo "=== Iniciando Apache ==="\n\
+apache2-foreground' > /start.sh && chmod +x /start.sh
+
+# Variables de entorno para Apache
+ENV APACHE_RUN_USER=www-data
+ENV APACHE_RUN_GROUP=www-data
+ENV APACHE_LOG_DIR=/var/log/apache2
+ENV PORT=80
+
+# Comando de inicio
+CMD ["/start.sh"]
