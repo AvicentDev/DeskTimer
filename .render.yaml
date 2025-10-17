@@ -1,19 +1,45 @@
 services:
   - type: web
-    name: laravel-app
-    env: php
-    buildCommand: |
-      composer install --no-dev
-      php artisan key:generate
-      php artisan migrate --force
-    startCommand: |
-      php artisan serve --host 0.0.0.0 --port $PORT
+    name: desktimer-backend
+    env: docker
+    plan: free
+    autoDeploy: true
+
+    buildCommand: "" # Render usará el Dockerfile automáticamente
+    startCommand: "" # Se usa el CMD ["apache2-foreground"] del Dockerfile
+
     envVars:
       - key: APP_ENV
         value: production
-      - key: APP_KEY
-        generateValue: true
       - key: APP_DEBUG
         value: false
+      - key: APP_KEY
+        value: base64:kRqMpZ5gUedNBO+GzCG/oSsWJf9DGIcQJyVzMNYapKI=
       - key: APP_URL
-        value: https://tuapp.onrender.com
+        value: https://desktimer-backend.onrender.com
+      - key: FRONTEND_URL
+        value: https://tufrontend.onrender.com
+
+      # Conexión PostgreSQL Render
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: dpg-d3ouu39r0fns73dt0am0-a.oregon-postgres.render.com
+      - key: DB_PORT
+        value: 5432
+      - key: DB_DATABASE
+        value: desktimer
+      - key: DB_USERNAME
+        value: desktimer_user
+      - key: DB_PASSWORD
+        sync: false # se agrega manualmente en el panel de Render
+      - key: DB_SSLMODE
+        value: require
+
+      # Laravel
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database

@@ -17,9 +17,6 @@ return new class extends Migration
             $table->string('email',250)->unique();
             $table->enum('rol', ['administrador', 'desarrollador', 'diseñador','tester','otro'])->default('desarrollador');
 
-            $table->bigInteger('proyecto_id')->unsigned();
-            $table->foreign('proyecto_id')->references('id')->on('proyectos');
-
             $table->bigInteger('usuario_id')->unsigned();
             $table->foreign('usuario_id')->references('id')->on('users');
             

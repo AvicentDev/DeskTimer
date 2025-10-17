@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre', 100);
             $table->string('descripcion', 255);
-            $table->time('tiempo_estimado');
+            $table->integer('tiempo_estimado'); // en horas
             $table->date('fecha_entrega');
             $table->timestamp('fecha_creacion');
             $table->enum('estado', ['pendiente', 'en_proceso', 'finalizado'])->default('pendiente');

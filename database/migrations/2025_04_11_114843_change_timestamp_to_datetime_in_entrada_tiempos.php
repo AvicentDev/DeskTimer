@@ -8,10 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('entrada_tiempos', function (Blueprint $table) {
-            $table->dateTime('tiempo_inicio')->change();
-            $table->dateTime('tiempo_fin')->nullable()->change();
-        });
+        // Los campos ya se crean como timestamp en la migración principal
+        // No es necesario cambiarlos, PostgreSQL maneja timestamp correctamente
     }
 
     public function down(): void

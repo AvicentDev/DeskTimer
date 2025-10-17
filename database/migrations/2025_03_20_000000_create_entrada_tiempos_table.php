@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('entrada_tiempos', function (Blueprint $table) {
             $table->id();
+            $table->string('estado')->default('pendiente');
+            $table->timestamp('tiempo_inicio');
+            $table->timestamp('tiempo_fin')->nullable();
+            $table->bigInteger('duracion');
+            $table->text('descripcion')->nullable();
+            $table->foreignId('tarea_id')->constrained('tareas')->onDelete('cascade');
+            $table->foreignId('usuario_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
