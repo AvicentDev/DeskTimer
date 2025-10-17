@@ -4,6 +4,24 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\SolicitudController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
+
+// Health check endpoint para Render
+Route::get('/health', function () {
+    try {
+        DB::connection()->getPdo();
+        $dbStatus = 'connected';
+    } catch (\Exception $e) {
+        $dbStatus = 'disconnected';
+    }
+    
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now(),
+        'database' => $dbStatus,
+        'app' => config('app.name')
+    ]);
+});
 
 Route::get('/user', function (Request $request) {
     return $request->user();
