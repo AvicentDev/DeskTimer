@@ -99,7 +99,7 @@ class EntradaTiempoController extends Controller
 
             $inicio = Carbon::parse($entrada->tiempo_inicio, 'Europe/Madrid');
             $fin = Carbon::now('Europe/Madrid');
-            $secs = $inicio->diffInSeconds($fin);
+            $secs = (int) $inicio->diffInSeconds($fin);
 
             $entrada->update([
                 'tiempo_fin' => $fin,
