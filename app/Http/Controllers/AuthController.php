@@ -38,17 +38,20 @@ class AuthController extends Controller
                 'rol' => $request->rol,
             ]);
 
+            $token = $user->createToken('auth_token')->plainTextToken;
+
             return response()->json([
                 'paso' => 3,
                 'mensaje' => 'Usuario creado exitosamente en BD',
-                'usuario' => [
+                'accessToken' => $token,
+                'token_type' => 'Bearer',
+                'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'rol' => $user->rol
                 ]
             ]);
-            
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Error en paso 3 (crear usuario)',
@@ -57,25 +60,6 @@ class AuthController extends Controller
                 'archivo' => basename($e->getFile())
             ], 500);
         }
-        
-        /* COMENTADO - PASO 4: CREAR TOKEN
-        try {
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'data' => $user,
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error al crear token',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => basename($e->getFile())
-            ], 500);
-        }
-        */
     }
 
 
