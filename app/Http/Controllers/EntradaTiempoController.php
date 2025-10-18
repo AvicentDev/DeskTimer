@@ -35,34 +35,54 @@ class EntradaTiempoController extends Controller
      */
     public function iniciar(Request $request)
     {
-        $request->validate([
-            'proyecto_id' => 'required|exists:proyectos,id',
-            'descripcion' => 'nullable|string',
-            'etiqueta_ids' => 'sometimes|array',
-            'etiqueta_ids.*' => 'exists:etiquetas,id',
-        ]);
+        try {
+            // Log para debugging
+            \Log::info('Iniciando cronómetro', [
+                'proyecto_id' => $request->proyecto_id,
+                'usuario_id' => Auth::id(),
+                'request_data' => $request->all()
+            ]);
 
-        $horaLocal = Carbon::now('Europe/Madrid');
+            $request->validate([
+                'proyecto_id' => 'required|exists:proyectos,id',
+                'descripcion' => 'nullable|string',
+                'etiqueta_ids' => 'sometimes|array',
+                'etiqueta_ids.*' => 'exists:etiquetas,id',
+            ]);
 
-        $entrada = Entrada_Tiempo::create([
-            'tiempo_inicio' => $horaLocal,
-            'tiempo_fin' => null,
-            'duracion' => 0,
-            'proyecto_id' => $request->proyecto_id,
-            'usuario_id' => Auth::id(),
-            'tarea_id' => $request->tarea_id ?? null,
-            'descripcion' => $request->descripcion,
-        ]);
+            $horaLocal = Carbon::now('Europe/Madrid');
 
-        // Sincronizar etiquetas
-        $entrada->etiquetas()->sync($request->input('etiqueta_ids', []));
+            $entrada = Entrada_Tiempo::create([
+                'tiempo_inicio' => $horaLocal,
+                'tiempo_fin' => null,
+                'duracion' => 0,
+                'proyecto_id' => $request->proyecto_id,
+                'usuario_id' => Auth::id(),
+                'tarea_id' => $request->tarea_id ?? null,
+                'descripcion' => $request->descripcion ?? '',
+            ]);
 
-        $entrada->load('etiquetas');
+            // Sincronizar etiquetas
+            $entrada->etiquetas()->sync($request->input('etiqueta_ids', []));
 
-        return response()->json([
-            'message' => 'Cronómetro iniciado',
-            'entrada_tiempo' => $entrada
-        ], 201);
+            $entrada->load('etiquetas');
+
+            return response()->json([
+                'message' => 'Cronómetro iniciado',
+                'entrada_tiempo' => $entrada
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al iniciar cronómetro', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Error al iniciar cronómetro',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
