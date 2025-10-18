@@ -90,32 +90,46 @@ class EntradaTiempoController extends Controller
      */
     public function detener(Request $request, $id)
     {
-        $entrada = Entrada_Tiempo::findOrFail($id);
+        try {
+            $entrada = Entrada_Tiempo::findOrFail($id);
 
-        if ($entrada->tiempo_fin) {
-            return response()->json(['message' => 'El cronómetro ya fue detenido'], 400);
+            if ($entrada->tiempo_fin) {
+                return response()->json(['message' => 'El cronómetro ya fue detenido'], 400);
+            }
+
+            $inicio = Carbon::parse($entrada->tiempo_inicio, 'Europe/Madrid');
+            $fin = Carbon::now('Europe/Madrid');
+            $secs = $inicio->diffInSeconds($fin);
+
+            $entrada->update([
+                'tiempo_fin' => $fin,
+                'duracion' => $secs,
+                'descripcion' => $request->input('descripcion', $entrada->descripcion ?? ''),
+            ]);
+
+            if ($request->has('etiqueta_ids')) {
+                $entrada->etiquetas()->sync($request->input('etiqueta_ids', []));
+            }
+
+            $entrada->load('etiquetas');
+
+            return response()->json([
+                'message' => 'Cronómetro detenido',
+                'entrada_tiempo' => $entrada
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al detener cronómetro', [
+                'entrada_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Error al detener cronómetro',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        $inicio = Carbon::parse($entrada->tiempo_inicio, 'Europe/Madrid');
-        $fin = Carbon::now('Europe/Madrid');
-        $secs = $inicio->diffInSeconds($fin);
-
-        $entrada->update([
-            'tiempo_fin' => $fin,
-            'duracion' => $secs,
-            'descripcion' => $request->input('descripcion', $entrada->descripcion),
-        ]);
-
-        if ($request->has('etiqueta_ids')) {
-            $entrada->etiquetas()->sync($request->input('etiqueta_ids', []));
-        }
-
-        $entrada->load('etiquetas');
-
-        return response()->json([
-            'message' => 'Cronómetro detenido',
-            'entrada_tiempo' => $entrada
-        ], 200);
     }
 
     /**
