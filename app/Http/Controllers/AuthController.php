@@ -43,9 +43,9 @@ class AuthController extends Controller
             return response()->json([
                 'paso' => 3,
                 'mensaje' => 'Usuario creado exitosamente en BD',
-                'accessToken' => $token,
+                'access_token' => $token,  // ✅ Cambiado a snake_case
                 'token_type' => 'Bearer',
-                'user' => [
+                'data' => [  // ✅ Envuelto en 'data' para consistencia
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
@@ -75,9 +75,9 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Hola ' . $user->name,
-            'accessToken' => $token,
+            'access_token' => $token,  // ✅ Cambiado a snake_case
             'token_type' => 'Bearer',
-            'user' => $user,
+            'data' => $user,  // ✅ Cambiado 'user' a 'data' para consistencia
         ]);
     }
 
