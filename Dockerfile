@@ -54,6 +54,13 @@ sed -i "s/:80/:${PORT:-80}/g" /etc/apache2/sites-available/000-default.conf\n\
 echo "Verificando conexión a base de datos..."\n\
 php artisan db:show || echo "Advertencia: No se pudo verificar la conexión a la BD"\n\
 \n\
+# IMPORTANTE: Limpiar cachés antes de optimizar\n\
+echo "Limpiando cachés anteriores..."\n\
+php artisan config:clear || true\n\
+php artisan route:clear || true\n\
+php artisan cache:clear || true\n\
+php artisan view:clear || true\n\
+\n\
 # Optimizaciones de Laravel\n\
 echo "Optimizando Laravel..."\n\
 php artisan config:cache\n\
