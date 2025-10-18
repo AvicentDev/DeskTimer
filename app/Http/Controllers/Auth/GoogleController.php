@@ -16,9 +16,31 @@ class GoogleController extends Controller
      */
     public function redirectToGoogle()
     {
-        // Uso stateful para validar CSRF mediante parámetro state en sesión
-        return Socialite::driver('google')
-                        ->redirect();
+        try {
+            // Log para debug
+            \Log::info('Intentando redirect a Google', [
+                'client_id' => config('services.google.client_id'),
+                'redirect' => config('services.google.redirect'),
+                'has_secret' => !empty(config('services.google.client_secret'))
+            ]);
+            
+            // Uso stateful para validar CSRF mediante parámetro state en sesión
+            return Socialite::driver('google')->redirect();
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en redirectToGoogle', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'error' => 'Error al iniciar autenticación con Google',
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => basename($e->getFile())
+            ], 500);
+        }
     }
 
     /**
@@ -44,16 +66,22 @@ class GoogleController extends Controller
             $token = $user->createToken('auth_token')->plainTextToken;
     
             // URL del frontend (desde el archivo .env)
-            $frontend = config('app.frontend_url', 'http://localhost:3000');
+            $frontend = env('FRONTEND_URL', 'http://localhost:5173');
     
             // Redirige al frontend con el token como parámetro de consulta
             return redirect()->away("{$frontend}/auth/google/callback?token={$token}");
         } catch (\Exception $e) {
-            // Retorna un JSON de error si algo falla
-            return response()->json([
-                'message' => 'Error al autenticar con Google',
-                'error'   => $e->getMessage(), // Para desarrollo, quitar en producción
-            ], 500);
+            // Log del error completo
+            \Log::error('Error en Google OAuth', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Redirigir al frontend con el error
+            $frontend = env('FRONTEND_URL', 'http://localhost:5173');
+            return redirect()->away("{$frontend}/login?error=google_auth_failed&message=" . urlencode($e->getMessage()));
         }
     }
     
