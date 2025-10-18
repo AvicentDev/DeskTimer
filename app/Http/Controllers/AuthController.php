@@ -14,7 +14,7 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        // Paso 2: Probar validación
+        // Paso 3: Crear usuario en BD
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
@@ -25,29 +25,12 @@ class AuthController extends Controller
 
             if ($validator->fails()) {
                 return response()->json([
-                    'paso' => 2,
                     'mensaje' => 'Validación falló',
                     'errores' => $validator->errors()
                 ], 422);
             }
 
-            return response()->json([
-                'paso' => 2,
-                'mensaje' => 'Validación exitosa',
-                'datos_validados' => $request->only(['name', 'email', 'rol'])
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error en paso 2 (validación)',
-                'mensaje' => $e->getMessage(),
-                'linea' => $e->getLine(),
-                'archivo' => basename($e->getFile())
-            ], 500);
-        }
-        
-        /* COMENTADO - SIGUIENTE PASO
-        try {
+            // Intentar crear el usuario
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -55,6 +38,28 @@ class AuthController extends Controller
                 'rol' => $request->rol,
             ]);
 
+            return response()->json([
+                'paso' => 3,
+                'mensaje' => 'Usuario creado exitosamente en BD',
+                'usuario' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'rol' => $user->rol
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error en paso 3 (crear usuario)',
+                'mensaje' => $e->getMessage(),
+                'linea' => $e->getLine(),
+                'archivo' => basename($e->getFile())
+            ], 500);
+        }
+        
+        /* COMENTADO - PASO 4: CREAR TOKEN
+        try {
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
@@ -64,7 +69,7 @@ class AuthController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Error al crear usuario',
+                'message' => 'Error al crear token',
                 'error' => $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => basename($e->getFile())
