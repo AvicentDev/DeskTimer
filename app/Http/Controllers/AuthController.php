@@ -13,32 +13,41 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'rol' => 'required|string|in:empleado,administrador',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:8',
+                'rol' => 'required|string|in:empleado,administrador',
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors());
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'rol' => $request->rol,
+            ]);
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'data' => $user,
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ]);
+        } catch (\Exception $e) {
+            // Esto captura cualquier error y devuelve un JSON con el mensaje
+            return response()->json([
+                'message' => 'Error al registrar usuario',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'rol' => $request->rol,
-        ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'data' => $user,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
     }
+
 
     public function login(Request $request)
     {
@@ -63,10 +72,7 @@ class AuthController extends Controller
         if ($request->user()) {
             $request->user()->tokens()->delete(); // Revoca todos los tokens del usuario
         }
-    
+
         return response()->json(['message' => 'Logged out'], 200);
     }
-
-
-
 }
