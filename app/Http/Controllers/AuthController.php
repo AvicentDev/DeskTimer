@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 
 class AuthController extends Controller
@@ -14,6 +15,9 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         try {
+            // Log para debug
+            Log::info('Intento de registro', ['data' => $request->all()]);
+            
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
@@ -22,6 +26,7 @@ class AuthController extends Controller
             ]);
 
             if ($validator->fails()) {
+                Log::warning('Validación fallida', ['errors' => $validator->errors()]);
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
@@ -34,16 +39,27 @@ class AuthController extends Controller
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
+            Log::info('Usuario registrado exitosamente', ['user_id' => $user->id]);
+
             return response()->json([
                 'data' => $user,
                 'access_token' => $token,
                 'token_type' => 'Bearer',
             ]);
         } catch (\Exception $e) {
-            // Esto captura cualquier error y devuelve un JSON con el mensaje
+            // Log del error completo
+            Log::error('Error en registro', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'message' => 'Error al registrar usuario',
                 'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => basename($e->getFile())
             ], 500);
         }
     }
