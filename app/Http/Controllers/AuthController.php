@@ -14,8 +14,23 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        // Paso 1: Verificar que lleguen los datos
         try {
-            // Log para debug
+            $data = $request->all();
+            return response()->json([
+                'paso' => 1,
+                'mensaje' => 'Datos recibidos correctamente',
+                'datos' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error en paso 1',
+                'mensaje' => $e->getMessage()
+            ], 500);
+        }
+        
+        /* COMENTADO TEMPORALMENTE PARA DEBUG
+        try {
             Log::info('Intento de registro', ['data' => $request->all()]);
             
             $validator = Validator::make($request->all(), [
@@ -47,7 +62,6 @@ class AuthController extends Controller
                 'token_type' => 'Bearer',
             ]);
         } catch (\Exception $e) {
-            // Log del error completo
             Log::error('Error en registro', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -62,6 +76,7 @@ class AuthController extends Controller
                 'file' => basename($e->getFile())
             ], 500);
         }
+        */
     }
 
 
@@ -86,7 +101,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         if ($request->user()) {
-            $request->user()->tokens()->delete(); // Revoca todos los tokens del usuario
+            $request->user()->tokens()->delete();
         }
 
         return response()->json(['message' => 'Logged out'], 200);
