@@ -29,6 +29,12 @@ COPY . /var/www/html
 # Instalar dependencias Laravel (sin dev)
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
+# Limpiar cachés de Laravel antes de hacer cache
+RUN php artisan config:clear || true && \
+    php artisan route:clear || true && \
+    php artisan cache:clear || true && \
+    php artisan view:clear || true
+
 # Configurar DocumentRoot a /var/www/html/public
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
@@ -64,7 +70,7 @@ php artisan view:clear || true\n\
 # Optimizaciones de Laravel\n\
 echo "Optimizando Laravel..."\n\
 php artisan config:cache\n\
-php artisan route:cache\n\
+# NO hacer route:cache para evitar congelar rutas en Docker\n\
 php artisan view:cache\n\
 \n\
 echo "=== Iniciando Apache ==="\n\
