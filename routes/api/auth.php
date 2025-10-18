@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Endpoint de prueba
+Route::post('/test-register', function (Request $request) {
+    return response()->json([
+        'message' => 'Test OK',
+        'received_data' => $request->all()
+    ]);
+});
+
 
 
 
