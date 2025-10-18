@@ -14,25 +14,8 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        // Paso 1: Verificar que lleguen los datos
+        // Paso 2: Probar validación
         try {
-            $data = $request->all();
-            return response()->json([
-                'paso' => 1,
-                'mensaje' => 'Datos recibidos correctamente',
-                'datos' => $data
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error en paso 1',
-                'mensaje' => $e->getMessage()
-            ], 500);
-        }
-        
-        /* COMENTADO TEMPORALMENTE PARA DEBUG
-        try {
-            Log::info('Intento de registro', ['data' => $request->all()]);
-            
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
@@ -41,10 +24,30 @@ class AuthController extends Controller
             ]);
 
             if ($validator->fails()) {
-                Log::warning('Validación fallida', ['errors' => $validator->errors()]);
-                return response()->json(['errors' => $validator->errors()], 422);
+                return response()->json([
+                    'paso' => 2,
+                    'mensaje' => 'Validación falló',
+                    'errores' => $validator->errors()
+                ], 422);
             }
 
+            return response()->json([
+                'paso' => 2,
+                'mensaje' => 'Validación exitosa',
+                'datos_validados' => $request->only(['name', 'email', 'rol'])
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error en paso 2 (validación)',
+                'mensaje' => $e->getMessage(),
+                'linea' => $e->getLine(),
+                'archivo' => basename($e->getFile())
+            ], 500);
+        }
+        
+        /* COMENTADO - SIGUIENTE PASO
+        try {
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -54,23 +57,14 @@ class AuthController extends Controller
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            Log::info('Usuario registrado exitosamente', ['user_id' => $user->id]);
-
             return response()->json([
                 'data' => $user,
                 'access_token' => $token,
                 'token_type' => 'Bearer',
             ]);
         } catch (\Exception $e) {
-            Log::error('Error en registro', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
             return response()->json([
-                'message' => 'Error al registrar usuario',
+                'message' => 'Error al crear usuario',
                 'error' => $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => basename($e->getFile())
